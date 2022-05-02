@@ -9,53 +9,26 @@ class wordle(enum.Enum): #classe pour déterminer les lettres
     CORRECT = 2
 
 
-def score(secret, guess):
-    """Scores a guess word when compared to a secret word.
-    Makes sure that characters aren't over-counted when they are correct.
-    For example, a careless implementation would flag the first “s”
-    of “swiss” as PRESENT if the secret word were “chess”.
-    However, the first “s” must be flagged as ABSENT.
-    To account for this, we start by computing a pool of all the relevant characters
-    and then make sure to remove them as they get used.
-    """
-
-    # All characters that are not correct go into the usable pool.
-    pool = collections.Counter(s for s, g in zip(secret, guess) if s != g)
-    # Create a first tentative score by comparing char by char.
-    score = []
-    for secret_char, guess_char in zip(secret, guess):
-        if secret_char == guess_char:
-            score.append(wordle.CORRECT)
-        elif guess_char in secret and pool[guess_char] > 0:
-            score.append(wordle.PRESENT)
-            pool[guess_char] -= 1
-        else:
-            score.append(wordle.NON)
-
-    return score
-
-
 def filter_words(words, guess, score):
-    """Filter words to only keep those that respect the score for the given guess."""
+    """On filtre les mots pour avoir ceux possibles logiquement"""
 
     new_words = []
     for word in words:
-        # The pool of characters that account for the PRESENT ones is all the characters
-        # that do not correspond to CORRECT positions.
+        #compter les chars qui sont présents ou non, sans prendre en compte ceux qui sont corrects
         pool = collections.Counter(c for c, sc in zip(word, score) if sc != wordle.CORRECT)
         for char_w, char_g, sc in zip(word, guess, score):
             if sc == wordle.CORRECT and char_w != char_g:
-                break  # Word doesn't have the CORRECT character.
+                break  # Le mot n'a pas de char qui est correcte
             elif char_w == char_g and sc != wordle.CORRECT:
-                break  # If the guess isn't CORRECT, no point in having equal chars.
+                break  # Si le choix est incorrect on ne l'ajoute pas
             elif sc == wordle.PRESENT:
                 if not pool[char_g]:
-                    break  # Word doesn't have this PRESENT character.
+                    break  #le mot n'a pas ce charactere
                 pool[char_g] -= 1
             elif sc == wordle.NON and pool[char_g]:
-                break  # ABSENT character shouldn't be here.
+                break  #Char absent donc on ne l'ajoute pas
         else:
-            new_words.append(word)  # No `break` was hit, so store the word.
+            new_words.append(word)  #Si le mot est valide, on l'ajoute a new words
 
     return new_words
 
@@ -67,25 +40,33 @@ def get_random_word(words):
     print(f"Hmmm, essayes {guess!r}...")
     return guess
 
-def play_with_computer(words):
-    
+def play_with_computer(words):  
     mapping = {"0": wordle.NON, "1": wordle.PRESENT, "2": wordle.CORRECT}
     print(f"\nNOTE: Appuies sur 0 si la lettre est grise, sur 1 si la lettre est jaune, et 2 si la lettre est verte\n")
     while len(words) > 1:
+        regle="incorrect" 
         guess = get_random_word(words)
         print("Quel est ton score ?")
         user_input = input(">>> ")
+        if user_input=="non":
+            while regle=="incorrect":
+                with open("a_file.txt","r") as f:
+                    lines=f.readlines()
+                    with open("a_file.txt",'w')as fw:
+                            for line in lines:
+                                if line.strip('\n') != guess:
+                                    fw.write(line)
+                guess = get_random_word(words)
+                print("Quel est ton score ?")
+                user_input = input(">>> ")
+                if user_input!="non":
+                    regle="correct"
         sc = [mapping[char] for char in user_input if char in mapping]
         words = filter_words(words, guess, sc)
-        print()
-
     return words
 def loopdejeu():#fonction pour jouer
-    WORD_LST = "a_file.txt"  # Dictionnaire crée auparavant
-
-    with open(WORD_LST, "r") as f:
-        words = [word.strip() for word in f.readlines()]
-
+    with open("a_file.txt", "r") as f:#notre dico
+        words = [word.strip() for word in f.readlines()]#Créer une liste a partir de notre dico
     words = play_with_computer(words)
 
     if not words:
