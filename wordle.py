@@ -37,7 +37,7 @@ def get_random_word(words):
     print(f"Je vais prendre au hasard parmis {len(words)} mots...")
     print(f"Je réfléchis a ton mot...")
     guess = random.choice(words)
-    print(f"Hmmm, essayes {guess!r}...")
+    print(f"Hmmm, essayes {guess}...")
     return guess
 
 def play_with_computer(words):  
@@ -71,7 +71,7 @@ def loopdejeu():#fonction pour jouer
 
     if not words:
         raise RuntimeError("Je ne connais pas ce mot :/")#si le mot n'est pas dans la liste
-    print(f"Ton mot est {words[0]!r}!") # s'il reste un seul mot
+    print(f"Ton mot est {words[0]}!") # s'il reste un seul mot
     
 
 a="true"
